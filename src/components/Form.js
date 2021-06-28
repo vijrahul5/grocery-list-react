@@ -1,6 +1,42 @@
 import React from "react";
 
 export default function Form({ currentForm, util }) {
+    function handleFormAddBtn(event) {
+        const data = new FormData(event.target);
+        const item = Object.fromEntries(data.entries());
+        if (item.itemName === "" || item.itemQuantity === "") {
+            alert("Please Fill All The Fields");
+            return;
+        }
+        item.itemName = item.itemName.toUpperCase();
+        item.itemQuantity = parseInt(item.itemQuantity, 10);
+        const form = document.querySelector(".form-holder>form");
+        form.querySelector("#inputItemName").value = "";
+        form.querySelector("#inputItemQuantity").value = "";
+        util.addGroceryListItem(item);
+    }
+    function handleFormSaveBtn(event) {
+        const data = new FormData(event.target);
+        const item = Object.fromEntries(data.entries());
+        if (item.itemName === "" || item.itemQuantity === "") {
+            alert("Please Fill All The Fields");
+            return;
+        }
+        const form = document.querySelector(".form-holder>form");
+        form.querySelector("#inputItemName").value = "";
+        form.querySelector("#inputItemQuantity").value = "";
+        item.itemName = item.itemName.toUpperCase();
+        item.itemQuantity = parseInt(item.itemQuantity, 10);
+        item.itemId = form.getAttribute("itemId");
+        util.updateGroceryListItem(item);
+        util.setCurrentForm("add");
+    }
+    function handleFormCancelBtn() {
+        util.setCurrentForm("add");
+        const form = document.querySelector(".form-holder>form");
+        form.querySelector("#inputItemName").value = "";
+        form.querySelector("#inputItemQuantity").value = "";
+    }
     return (
         <div className="form-section">
             <div className="form-section-title">
@@ -13,11 +49,11 @@ export default function Form({ currentForm, util }) {
                     currentForm === "add"
                         ? (e) => {
                               e.preventDefault();
-                              util.handleFormAddBtn(e);
+                              handleFormAddBtn(e);
                           }
                         : (e) => {
                               e.preventDefault();
-                              util.handleFormSaveBtn(e);
+                              handleFormSaveBtn(e);
                           }
                 }
             >
@@ -44,7 +80,7 @@ export default function Form({ currentForm, util }) {
                         <button
                             className="cancelBtn"
                             type="button"
-                            onClick={util.handleFormCancelBtn}
+                            onClick={handleFormCancelBtn}
                         >
                             Cancel
                         </button>

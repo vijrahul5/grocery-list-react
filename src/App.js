@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Form from "./components/Form";
 import GroceryList from "./components/GroceryList";
 import { useState, useEffect } from "react";
+import util from "./util";
 
 function App() {
     const [myList, setMyList] = useState(model.getListStorage());
@@ -21,7 +22,7 @@ function App() {
     function addGroceryListItem(item) {
         // Adds a Grocery List Item to the Grocery List
         let list = model.list;
-        const foundItem = checkSameName(item);
+        const foundItem = util.checkSameName(item, list);
         if (foundItem) {
             item.itemQuantity += foundItem.itemQuantity;
             item.itemId = foundItem.itemId;
@@ -38,12 +39,12 @@ function App() {
     function updateGroceryListItem(item) {
         // Updates a Grocery List Item present in the Grocery List
         let list = model.list;
-        const foundItem = checkSameId(item);
+        const foundItem = util.checkSameId(item, list);
         if (foundItem) {
             for (let key in foundItem) {
                 foundItem[key] = item[key];
             }
-            const newFoundItem = checkSameNameDiffId(foundItem);
+            const newFoundItem = util.checkSameNameDiffId(foundItem, list);
             if (newFoundItem) {
                 return "Cannot Have Two Items With Same Name !";
             }
@@ -59,91 +60,15 @@ function App() {
     }
     function removeGroceryListItem(item) {
         // Removes a Grocery List Item present in the Grocery List
-        console.log(item);
         setMyList((prevList) => {
             prevList = prevList.filter((listItem) => {
                 return listItem.itemName !== item.itemName;
             });
-            console.log(prevList);
             return prevList;
         });
         return "Item Successfully Removed !";
     }
-    function checkSameName(item) {
-        // Checks if there is an grocery list item with the same name already present
-        let list = model.list;
-        const foundItem = list.find((listItem) => {
-            return listItem.itemName === item.itemName;
-        });
-        return foundItem;
-    }
-    function checkSameId(item) {
-        // Checks if there is an grocery list item with the same id already present
-        let list = model.list;
-        const foundItem = list.find((listItem) => {
-            return listItem.itemId === item.itemId;
-        });
-        return foundItem;
-    }
-    function checkSameNameDiffId(item) {
-        // Checks if there is an grocery list item with the same name but different id already present
-        let list = model.list;
-        const foundItem = list.find((listItem) => {
-            return (
-                listItem.itemName === item.itemName &&
-                listItem.itemId !== item.itemId
-            );
-        });
-        return foundItem;
-    }
-    function handleEditBtn(item) {
-        setCurrentForm("edit");
-        const form = document.querySelector(".form-holder>form");
-        form.querySelector("#inputItemName").value = item.itemName;
-        form.querySelector("#inputItemQuantity").value = item.itemQuantity;
-        form.setAttribute("itemId", item.itemId);
-    }
-    function handleDeleteBtn(item) {
-        console.log("delete");
-        console.log(item);
-        removeGroceryListItem(item);
-    }
-    function handleFormAddBtn(event) {
-        const data = new FormData(event.target);
-        const item = Object.fromEntries(data.entries());
-        if (item.itemName === "" || item.itemQuantity === "") {
-            alert("Please Fill All The Fields");
-            return;
-        }
-        item.itemName = item.itemName.toUpperCase();
-        item.itemQuantity = parseInt(item.itemQuantity, 10);
-        const form = document.querySelector(".form-holder>form");
-        form.querySelector("#inputItemName").value = "";
-        form.querySelector("#inputItemQuantity").value = "";
-        addGroceryListItem(item);
-    }
-    function handleFormSaveBtn(event) {
-        const data = new FormData(event.target);
-        const item = Object.fromEntries(data.entries());
-        if (item.itemName === "" || item.itemQuantity === "") {
-            alert("Please Fill All The Fields");
-            return;
-        }
-        const form = document.querySelector(".form-holder>form");
-        form.querySelector("#inputItemName").value = "";
-        form.querySelector("#inputItemQuantity").value = "";
-        item.itemName = item.itemName.toUpperCase();
-        item.itemQuantity = parseInt(item.itemQuantity, 10);
-        item.itemId = form.getAttribute("itemId");
-        updateGroceryListItem(item);
-        setCurrentForm("add");
-    }
-    function handleFormCancelBtn() {
-        setCurrentForm("add");
-        const form = document.querySelector(".form-holder>form");
-        form.querySelector("#inputItemName").value = "";
-        form.querySelector("#inputItemQuantity").value = "";
-    }
+
     return (
         <>
             <Header />
@@ -151,13 +76,19 @@ function App() {
                 <Form
                     currentForm={currentForm}
                     util={{
-                        handleFormCancelBtn,
-                        handleFormSaveBtn,
-                        handleFormAddBtn,
+                        addGroceryListItem,
+                        removeGroceryListItem,
+                        updateGroceryListItem,
+                        setCurrentForm,
                     }}
                 />
                 <GroceryList
-                    util={{ handleEditBtn, handleDeleteBtn }}
+                    util={{
+                        addGroceryListItem,
+                        removeGroceryListItem,
+                        updateGroceryListItem,
+                        setCurrentForm,
+                    }}
                     list={myList}
                 />
             </div>
